@@ -10,58 +10,55 @@ export default class App extends Component {
     this.state = {
       currentUser: {name: "Bob"}, // optional. if currentUser is not defined, it means the user is Anonymous
       messages: [],
-      userStatus: ''
+      userStatus: '',
+      connected: false
     };
-    this.onNewMessage = this.onNewMessage.bind(this);
-    this.updateUser = this.updateUser.bind(this);
-    this.socket = new WebSocket("ws://127.0.0.1:3001");
   }
 
-  componentDidMount() {
-    this.socket.onopen = () => {
-      if(this.socket.readyState === "OPEN") {
-        console.log("Connected to server");
-      }
-      this.socket.onmessage = (event) => {
-        let msg = JSON.parse(event.data);
-        // add the new message to messages
-        console.log("on the client side, msg is: ",msg);
-        switch(msg.type) {
-          case "incomingMessage":
-          let newUser = msg.userName;
-          this.setState(prevState => {return {
-            messages: prevState.messages.concat(msg),
-            currentUser: {
-              name: newUser
-            }
-          }});
-          break;
-          case "incomingNotification":
-            console.log("incomingNotification gets triggered");
-            console.log('msg is',msg);
-            this.setState(prevState => {return {
-            messages: prevState.messages.concat(msg),
-          }});
-            console.log(this.state);
-          break;
-          case "onlineUserCount":
-            console.log('onlineUserCount gets triggered');
-            console.log('msg is',msg);
-            this.setState({userStatus: msg.content});
-          default:
-            console.log("Unrecognized incoming event!!");
+  onSocketMessage = (event) => {
+    let msg = JSON.parse(event.data);
+    // add the new message to messages
+    switch(msg.type) {
+      case "incomingMessage":
+      let newUser = msg.userName;
+      this.setState(prevState => { return {
+        messages: prevState.messages.concat(msg),
+        currentUser: {
+          name: newUser
         }
-      }
+      }});
+      break;
+      case "incomingNotification":
+        this.setState(prevState => { return {
+        messages: prevState.messages.concat(msg),
+      }});
+      break;
+      case "onlineUserCount":
+        this.setState({userStatus: msg.content});
+      default:
+        console.log("Unrecognized incoming event!!");
     }
   }
 
-  onNewMessage(data) {
+  componentDidMount() {
+    this.socket = new WebSocket("ws://127.0.0.1:3001");
+    this.socket.onopen = () => this.setState({ connected: true });
+    this.socket.onclose = () => this.setState({ connected: false });
+    this.socket.onmessage = this.onSocketMessage;
+  }
+
+  componentWillUnmount() {
+    this.socket.close();
+    delete this.socket;
+  }
+
+  onNewMessage = (data) => {
     var newMessage = data;
     newMessage.type = "postMessage";
     this.socket.send(JSON.stringify(data));
   }
 
-  updateUser(newUser) {
+  updateUser = (newUser) => {
     console.log("updateUser gets triggered!");
     console.log("newUser is ",newUser);
     var prevUser = this.state.currentUser.name;

@@ -22,9 +22,7 @@ const wss = new SocketServer({ server });
 var userCount = 0;
 
 wss.on('connection', (ws) => {
-  console.log('Client connected');
   userCount++;
-  console.log("Current online user number:",userCount);
   var outGoingMsg;
 
   wss.clients.forEach(function each(client) {
@@ -36,7 +34,6 @@ wss.on('connection', (ws) => {
   });
 
   ws.on('message', function incoming(message) {
-    console.log("On the server side incoming message is: ",message);
     outGoingMsg = JSON.parse(message);
     switch(outGoingMsg.type) {
       case 'postMessage':
@@ -44,11 +41,10 @@ wss.on('connection', (ws) => {
         outGoingMsg.type = 'incomingMessage';
         break;
       case 'postNotification':
-        console.log("it's a notification!!");
         outGoingMsg.type = "incomingNotification";
         break;
       default:
-        console.log("Unrecognized post event!!");
+        outGoingMsg.type = "unrecognized event";
       }
     wss.clients.forEach(function each(client) {
       client.send(JSON.stringify(outGoingMsg));
@@ -56,10 +52,8 @@ wss.on('connection', (ws) => {
   });
   // Set up a callback for when a client closes the socket. This usually means they closed their browser.
   ws.on('close', () => {
-    console.log('Client disconnected');
     userCount--;
     var info = `${userCount} users online`;
-    console.log("within server js," ,info);
     wss.clients.forEach(function each(client) {
       outGoingMsg = {
         type: "onlineUserCount",
