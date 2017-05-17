@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import { postMessage, postNotification } from '../../chatty_server/constants.js';
 
 
 // class Message extends Component {
@@ -17,12 +18,14 @@ import React, {Component} from 'react';
 
 
 
-export default ({username, content}) => (
-  <div className="message">
-    <span className="message-username">{username}</span>
-    <span className="message-content">{content}</span>
-  </div>
-);
+export default function Message({type, userName, content}) {
+  return (
+    <div className={ type === postMessage ? "message" : "notification" }>
+      { userName ?  <span className="message-username">{userName}</span> : null }
+      <span className="message-content">{content}</span>
+    </div>
+  );
+}
 
 // function foo(a, b) {
 //   arguments.length
