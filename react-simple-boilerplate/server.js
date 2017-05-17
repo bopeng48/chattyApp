@@ -2,6 +2,8 @@ var webpack = require('webpack');
 var WebpackDevServer = require('webpack-dev-server');
 var config = require('./webpack.config');
 
+const PORT = process.env.PORT || 3002;
+
 new WebpackDevServer(webpack(config), {
     publicPath: config.output.publicPath,
     watchOptions: {
@@ -9,10 +11,10 @@ new WebpackDevServer(webpack(config), {
       poll: 1000
     }
   })
-  .listen(3002, '0.0.0.0', function (err, result) {
+  .listen(PORT, '0.0.0.0', function (err, result) {
     if (err) {
       console.log(err);
     }
 
-    console.log('Running at http://0.0.0.0:3000');
+    console.log(`Running at http://0.0.0.0:${PORT}`);
   });
